@@ -6,7 +6,9 @@ library(patchwork)
 library(geomtextpath)
 library(ggtext)
 library(here)
-
+library(ggh4x)
+library(gt)
+library(gtExtras)
 fasteignamat <- read_excel(
   here("data-raw", "2025", "fasteignagjold.xlsx"),
   skip = 7,
@@ -69,6 +71,7 @@ d <- read_excel(
   )
 
 
+
 p1 <- d |>
   mutate(
     color = if_else(
@@ -78,8 +81,7 @@ p1 <- d |>
     ),
     sveitarfelag = fct_reorder(sveitarfelag, haekkun_verd) |>
       fct_recode(
-        "<b style='color:#a50f15;'>Seltjarnarnesbær</b>" = "Seltjarnarnesbær",
-        "Grundarfjarðarbær<span style='color:#faf9f9;'>__</span>" = "Grundarfjarðarbær"
+        "<b style='color:#a50f15;'>Seltjarnarnesbær</b>" = "Seltjarnarnesbær"
       )
   ) |>
   ggplot(aes(haekkun_verd, sveitarfelag)) +
@@ -94,11 +96,10 @@ p1 <- d |>
   ) +
   geom_textcurve(
     data = tibble(
-      x = 10e6, xend = 14.6e6,
-      y = 31, yend = 48,
+      x = 10e6, xend = 5.2e6,
+      y = 34, yend = 41,
       label = str_c(
-        "Fasteignamat hækkaði að meðaltali\n",
-        "um 14,6 milljónir á Seltjarnarnesi"
+        "Fasteignamat hækkar að meðaltali\n"
       )
     ),
     aes(x = x, xend = xend, y = y, yend = yend, label = label),
@@ -106,16 +107,36 @@ p1 <- d |>
     angle = 90,
     curvature = 0.2,
     col = "#a50f15",
-    vjust = -0.25,
+    vjust = 2.5,
+    halign = "right"
+  ) +
+  geom_textcurve(
+    data = tibble(
+      x = 10e6, xend = 5.2e6,
+      y = 34, yend = 41,
+      label = str_c(
+        "um 4,9 milljónir á Seltjarnarnesi"
+      )
+    ),
+    aes(x = x, xend = xend, y = y, yend = yend, label = label),
+    arrow = arrow(length = unit(0.15, "inches"), type = "closed"),
+    angle = 90,
+    curvature = 0.2,
+    col = "#a50f15",
+    vjust = 1.4,
     halign = "right"
   ) +
   scale_x_continuous(
     labels = label_isk(scale = 1e-6),
     # limits = c(0, 90000),
-    expand = expansion()
+    expand = expansion(),
+    guide = guide_axis_truncated()
+  ) +
+  scale_y_discrete(
+    guide = guide_axis_truncated()
   ) +
   scale_color_identity() +
-  coord_cartesian(clip = "off", xlim = c(0, 17e6)) +
+  coord_cartesian(clip = "off", xlim = c(0, 11e6)) +
   labs(
     x = NULL,
     y = NULL,
@@ -137,7 +158,7 @@ p2 <- d |>
       fct_recode(
         "<b style='color:#a50f15;'>Seltjarnarnesbær</b>" = "Seltjarnarnesbær"
       )
-  ) |>
+  ) |> 
   pivot_longer(c(fskattur_a:vatnsgjald)) |> 
   mutate(
     value = cumsum(value/100),
@@ -153,29 +174,9 @@ p2 <- d |>
   ) |> 
   ggplot(aes(fasteignamat, sveitarfelag)) +
   geom_segment(
-    aes(x = value, xend = value_end, yend = sveitarfelag, color = color2),
+    aes(x = value, xend = value_end, yend = sveitarfelag, col = color2),
     linewidth = 1.3,
     alpha = 0.7
-  ) +
-  geom_point(
-    aes(color = color),
-    size = 3
-  ) +
-  geom_textcurve(
-    data = tibble(
-      x = 0.011, xend = 0.0043,
-      y = 16, yend = 11.1,
-      label = str_c(
-        "en lágt hlutfall fasteignamats í\nfasteignagjöldum"
-      )
-    ),
-    aes(x = x, xend = xend, y = y, yend = yend, label = label),
-    arrow = arrow(length = unit(0.15, "inches"), type = "closed"),
-    angle = 90,
-    curvature = -0.3,
-    col = "#a50f15",
-    vjust = -0.3,
-    halign = "left"
   ) +
   annotate(
     geom = "richtext",
@@ -190,12 +191,58 @@ p2 <- d |>
     fill = NA,
     label.color = NA
   ) +
-  scale_x_continuous(
-    labels = label_hlutf(),
-    # limits = c(0, 90000),
-    expand = expansion()
+  # geom_segment(
+  #   aes(xend = 0, yend = sveitarfelag, color = color),
+  #   linewidth = 0.5,
+  #   alpha = 0.5
+  # ) +
+  geom_point(
+    aes(color = color),
+    size = 3
   ) +
-  scale_colour_identity() +
+  geom_textcurve(
+    data = tibble(
+      x = 0.011, xend = 0.0043,
+      y = 16, yend = 10.9,
+      label = str_c(
+        "en heildarhlutfall fasteignamats í "
+      )
+    ),
+    aes(x = x, xend = xend, y = y, yend = yend, label = label),
+    arrow = arrow(length = unit(0.15, "inches"), type = "closed"),
+    angle = 90,
+    curvature = -0.3,
+    col = "#a50f15",
+    vjust = -0.3,
+    halign = "left"
+  ) +
+  geom_textcurve(
+    data = tibble(
+      x = 0.011, xend = 0.0043,
+      y = 16, yend = 10.9,
+      label = str_c(
+        "útreikningum undirliða"
+      )
+    ),
+    aes(x = x, xend = xend, y = y, yend = yend, label = label),
+    arrow = arrow(length = unit(0.15, "inches"), type = "closed"),
+    angle = 90,
+    curvature = -0.3,
+    col = "#a50f15",
+    vjust = -1.3,
+    halign = "left"
+  ) +
+  scale_x_continuous(
+    breaks = breaks_width(0.002),
+    labels = label_hlutf(),
+    limits = c(0, 0.014),
+    expand = expansion(),
+    guide = guide_axis_truncated()
+  ) +
+  scale_y_discrete(
+    guide = guide_axis_truncated()
+  ) +
+  scale_color_identity() +
   coord_cartesian(clip = "off", xlim = c(0, NA)) +
   labs(
     x = NULL,
@@ -216,8 +263,7 @@ p3 <- d |>
     ),
     sveitarfelag = fct_reorder(sveitarfelag, haekkun_mat) |>
       fct_recode(
-        "<b style='color:#a50f15;'>Seltjarnarnesbær</b>" = "Seltjarnarnesbær",
-        "Grundarfjarðarbær<span style='color:#faf9f9;'> _____</span>" = "Grundarfjarðarbær"
+        "<b style='color:#a50f15;'>Seltjarnarnesbær</b>" = "Seltjarnarnesbær"
       )
   ) |>
   ggplot(aes(haekkun_mat, sveitarfelag)) +
@@ -231,17 +277,22 @@ p3 <- d |>
     size = 3
   ) +
   scale_x_continuous(
+    breaks = breaks_width(25000),
     labels = label_isk(scale = 1e-3),
-    # limits = c(0, 90000),
-    expand = expansion()
+    limits = c(0, 75000),
+    expand = expansion(),
+    guide = guide_axis_truncated()
+  ) +
+  scale_y_discrete(
+    guide = guide_axis_truncated()
   ) +
   scale_color_identity() +
   geom_textcurve(
     data = tibble(
-      x = 80000, xend = 59000,
-      y = 33, yend = 47.1,
+      x = 40000, xend = 20000,
+      y = 15, yend = 24.9,
       label = str_c(
-        "dregur úr aukningu gjaldanna\nvegna hækkandi mats"
+        "hefur áhrif á aukningu fasteignagjalda"
       )
     ),
     aes(x = x, xend = xend, y = y, yend = yend, label = label),
@@ -252,37 +303,53 @@ p3 <- d |>
     vjust = -0.3,
     halign = "left"
   ) +
-  coord_cartesian(clip = "off", xlim = c(0, 90000)) +
+  geom_textcurve(
+    data = tibble(
+      x = 40000, xend = 20000,
+      y = 15, yend = 24.9,
+      label = str_c(
+        "vegna hækkandi mats"
+      )
+    ),
+    aes(x = x, xend = xend, y = y, yend = yend, label = label),
+    arrow = arrow(length = unit(0.15, "inches"), type = "closed"),
+    angle = 90,
+    curvature = 0.2,
+    col = "#a50f15",
+    vjust = -1.3,
+    halign = "left"
+  ) +
+  coord_cartesian(clip = "off", xlim = c(0, 75000)) +
   labs(
     x = NULL,
     y = NULL,
-    subtitle = "Áhrif fasteignamats á hækkun árlegra fasteigna-, vatns- og fráveitugjalda sveitarfélaga"
+    subtitle = "Meðaláhrif aukins fasteignamats á hækkun árlegs fasteignagjalds einstaklinga sveitarfélaga"
   ) +
   theme(
     axis.text.y = element_markdown(),
-    axis.ticks.y = element_blank()
+    axis.ticks.y = element_blank(),
+    plot.margin = margin(t = 5, r = 25, b = 5, l = 5)
   )
 
 
 p <- (p1 + p2) / p3 +
   plot_annotation(
-    title = "Hækkandi fasteignamat hefur mismunandi áhrif á fasteignagjöld eftir sveitarfélagi",
+    title = "Hækkandi fasteignamat hefur mismunandi áhrif á fasteignagjöld einstaklinga eftir sveitarfélagi",
     subtitle = str_c(
       "Fasteignagjöld samanstanda af nokkrum liðum: fasteignaskatti, lóðarleigu, og vatns- sorp- og fráveitugjaldi. ",
       "Þessir liðir geta ýmist vera reiknaðir út frá stærð\nfasteignar, fasteignamati hennar, föstum krónufjölda eða blöndu af þessu öllu."
     ),
     caption = str_c(
-      "Fasteignagjöld: https://www.samband.is/arbok-sveitarfelaga",
+      "Fasteignagjöld: https://www.samband.is/verkefnin/fjarmal/tekjustofnar-sveitarfelaga/fasteignaskattur/",
       "\n",
-      "Fasteignamat: https://hms.is/gogn-og-maelabord/maelabordfasteignaskra/gogn-fyrir-fasteignamat",
-      "\n",
-      "Kóði: https://github.com/bgautijonsson/sunnudagurtilsveitarfelaga"
+      "Fasteignamat: https://www.fasteignaskra.is/library/Skrar/fasteignamat/2025/Sveitarfélög%20eftir%20tegundum%20eigna.xlsx"
     )
   )
 
 
 ggsave(
   plot = p,
-  filename = here("Figures", "fasteignagjold2025.png"),
+  filename = here("Figures", "fasteignagjold2_2025.png"),
   width = 8, height = 1.2 * 8, scale = 1.7
 )
+

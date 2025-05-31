@@ -9,8 +9,8 @@ theme_set(theme_metill())
 
 
 read_excel(
-  here("data-raw", "fasteignagjold.xlsx"),
-  skip = 8,
+  here("data-raw", "2025", "fasteignagjold.xlsx"),
+  skip = 7,
   col_names = c(
     "svfn",
     "sveitarfelag",
@@ -20,13 +20,11 @@ read_excel(
     "fskattur_c",
     "fraveitugjald",
     "vatnsgjald",
-    "sorphreinsun_tunnugjald",
-    "sorphreinsun_eydingargjald",
     "lodarleiga_ibudir",
     "lodarleiga_fyrirtaeki",
     "fjoldi_gjalda"
   ),
-  col_types = rep("text", 13)
+  col_types = rep("text", 11)
 ) |>
   mutate(
     sveitarfelag = str_replace_all(sveitarfelag, "[0-9]+\\)", "") |>
@@ -43,7 +41,8 @@ read_excel(
   ) |> 
   mutate_if(is.numeric, \(x) x / 100) |> 
   mutate(fasteignagjold = (fskattur_a + fraveitugjald + vatnsgjald)) |> 
-  arrange(fasteignagjold) |> 
+  filter(sveitarfelag != "Grindavíkurbær") |> 
+  arrange(fasteignagjold) |> View()
   gt() |> 
   cols_label(
     sveitarfelag = "",
@@ -73,8 +72,8 @@ read_excel(
     subtitle = md(
       str_c(
         '<div style="text-align: left"> ',
-        "Samhliða fasteignaskatti innheimta sveitarfélög ýmis gjöld svo sem <b>fráveitu- og vatnsgjöld</b>, ",
-        "<b>lóðaleigu</b> og <b>sorpgjald</b>. Saman kallast þessi gjöld gjarnan <b>fasteignagjöld</b>. ",
+        "Samhliða fasteignaskatti innheimta sveitarfélög ýmis gjöld svo sem <b>fráveitu- og vatnsgjöld</b>, og ",
+        "<b>lóðaleigu</b>. Saman kallast þessi gjöld gjarnan <b>fasteignagjöld</b>. ",
         "Sum þessara gjalda eru reiknuð hlutfallslega út frá fasteignamati fasteignar eða út frá stærð hennar í fermetrum, ",
         "og þetta getur verið mismunandi eftir sveitarfélagi",
         '</div>'
@@ -88,8 +87,7 @@ read_excel(
   tab_source_note(
     md(
       str_c(
-      "Gögn og kóði: github.com/bgautijonsson/fasteignagjold", "<br>",
-      "Nánar um fasteignaskatta og fasteignagjöld: samband.is/verkefnin/fjarmal/tekjustofnar-sveitarfelaga/fasteignaskattur/"
+      "Gögn og kóði: github.com/bgautijonsson/fasteignagjold"
     )
     )
   ) |> 
@@ -137,15 +135,9 @@ read_excel(
     table.font.size = 14
   ) |> 
   gtsave(
-    filename = here("Figures", "table.png"),
+    filename = here("Figures", "table_2025.png"),
     expand = 4,
     zoom = 7,
     vwidth = 1100
   )
-
-theme_metill
-
-
-
-gt_theme_538
 

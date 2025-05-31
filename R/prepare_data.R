@@ -10,16 +10,13 @@ col_names <- c(
   "fastskattur_c",
   "fraveitugjald",
   "vatnsgjald",
-  "sorphreinsun_tunnugjald",
-  "sorphreinsun_eydingargjald",
   "lodarleiga_ibudir",
   "lodarleiga_fyrirtaeki",
   "fjoldi_gjalda"
 )
 
 d <- read_excel(
-  "data-raw/fasteignagjold.xlsx", 
-  sheet = "Tafla 14", 
+  "data-raw/2025/fasteignagjold.xlsx", 
   skip = 8, 
   col_names = col_names, 
   col_types = rep("text", length(col_names))
@@ -49,7 +46,7 @@ d <- read_excel(
       parse_number(locale = locale("is", decimal_mark = ",", grouping_mark = "."))
   ) |> 
   mutate_at(
-    vars(utsvar, fastskattur_a, sorphreinsun_tunnugjald, sorphreinsun_eydingargjald),
+    vars(utsvar, fastskattur_a),
     parse_number
   ) |> 
   mutate(
